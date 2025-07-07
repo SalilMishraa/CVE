@@ -614,14 +614,14 @@ def handle_natural_query(user_input):
 
     prompt = f"""
     You are an expert on CVE (Common Vulnerabilities and Exposures) and cybersecurity.
-    The user asked: "{user_input}"
-
+    The user asked: " {user_input}"
+    
     - Answer ONLY if the query is related to CVEs, cybersecurity vulnerabilities, or known CVE trends.
     - Do NOT respond to unrelated questions.
     - Limit your response to 300 words.
     - If the query is not related to CVEs, say: "Sorry, I can only help with queries related to cybersecurity vulnerabilities or CVE data."
     """
-
+    
     try:
         response = model.generate_content(prompt)
         return response.text
