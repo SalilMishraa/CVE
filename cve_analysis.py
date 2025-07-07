@@ -347,8 +347,7 @@ def main():
         # Add initial bot message
         st.session_state.chat_messages.append({
             "role": "assistant",
-            "content": "👋 Hello! I'm your CVE Analysis Agent. What CVE would you like me to analyze?\n\n**Example CVEs:** CVE-2023-40088, CVE-2021-44228, CVE-2023-23397, CVE-2022-30190\n\nJust type a CVE ID and I'll provide a comprehensive security analysis!",
-            "show_top_cves_button": True
+            "content": "👋 Hello! I'm your CVE Analysis Agent. What CVE would you like me to analyze?\n\n**Example CVEs:** CVE-2023-40088, CVE-2021-44228, CVE-2023-23397, CVE-2022-30190\n\nJust type a CVE ID and I'll provide a comprehensive security analysis!"
         })
 
     # Sidebar configuration
@@ -360,13 +359,12 @@ def main():
             st.session_state.chat_messages = []
             st.session_state.chat_messages.append({
                 "role": "assistant", 
-                "content": "👋 Hello! I'm your CVE Analysis Agent. What CVE would you like me to analyze?\n\n**Example CVEs:** CVE-2023-40088, CVE-2021-44228, CVE-2023-23397, CVE-2022-30190\n\nJust type a CVE ID and I'll provide a comprehensive security analysis!",
-                "show_top_cves_button": True
+                "content": "👋 Hello! I'm your CVE Analysis Agent. What CVE would you like me to analyze?\n\n**Example CVEs:** CVE-2023-40088, CVE-2021-44228, CVE-2023-23397, CVE-2022-30190\n\nJust type a CVE ID and I'll provide a comprehensive security analysis!"
             })
             st.rerun()
 
-    # Display chat history
-    for message in st.session_state.chat_messages:
+        # Display chat history
+    for i, message in enumerate(st.session_state.chat_messages):
         with st.chat_message(message["role"]):
             if message["role"] == "assistant" and "analysis_data" in message:
                 # Display formatted analysis results
@@ -374,32 +372,44 @@ def main():
             else:
                 st.markdown(message["content"])
                 
-                # Show "Top CVEs Today" button for initial assistant message
-                if message["role"] == "assistant" and message.get("show_top_cves_button", False):
-                    if st.button("📅 View Top CVEs Published Today", key=f"top_cves_btn_{len(st.session_state.chat_messages)}"):
-                        # Add user message
-                        st.session_state.chat_messages.append({
-                            "role": "user",
-                            "content": "📅 Show me the top CVEs published today"
-                        })
-                        
-                        # Add loading message and fetch today's CVEs
-                        with st.spinner("🔍 Fetching today's published CVEs..."):
-                            today_cves_response = fetch_today_cves()
-                        
-                        # Add assistant response
-                        st.session_state.chat_messages.append({
-                            "role": "assistant",
-                            "content": today_cves_response
-                        })
-                        
-                        # Add follow-up message
-                        st.session_state.chat_messages.append({
-                            "role": "assistant",
-                            "content": "💡 **Tip:** Copy any CVE ID from above and paste it below to get detailed analysis!"
-                        })
-                        
-                        st.rerun()
+                # Only show button for welcome messages and continuity messages (not analysis results or errors)
+                show_button = False
+                if message["role"] == "assistant":
+                    content = message["content"]
+                    # Show button for welcome messages or follow-up/continuity messages
+                    if ("Hello! I'm your CVE Analysis Agent" in content or 
+                        "What would you like to analyze next?" in content or
+                        "Want to analyze another CVE?" in content or
+                        "Ready for deeper analysis?" in content):
+                        show_button = True
+                
+                if show_button:
+                    col1, col2 = st.columns([4, 1])
+                    with col2:
+                        if st.button("📅 Today's CVEs", key=f"cve_btn_{i}", help="View CVEs published today"):
+                            # Add user message
+                            st.session_state.chat_messages.append({
+                                "role": "user",
+                                "content": "📅 Show me the top CVEs published today"
+                            })
+                            
+                            # Add loading message and fetch today's CVEs
+                            with st.spinner("🔍 Fetching today's published CVEs..."):
+                                today_cves_response = fetch_today_cves()
+                            
+                            # Add assistant response
+                            st.session_state.chat_messages.append({
+                                "role": "assistant",
+                                "content": today_cves_response
+                            })
+                            
+                            # Add follow-up message with tip and welcome
+                            st.session_state.chat_messages.append({
+                                "role": "assistant",
+                                "content": "💡 **Tip:** Copy any CVE ID from above and paste it below to get detailed analysis!\n\n🔍 **Ready for deeper analysis?** Just enter any CVE ID (like CVE-2024-XXXX) and I'll provide:\n- 🤖 AI-powered vulnerability summary\n- 🛡️ Mitigation strategies and fixes\n- 📊 CVSS risk scores and impact analysis\n- 🔗 Reference links and advisories\n\n**What would you like to analyze next?**"
+                            })
+                            
+                            st.rerun()
 
     # Handle auto-analyze from dependency scanner
     auto_analyze_cve = None
